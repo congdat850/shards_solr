@@ -1,0 +1,115 @@
+version: "3.1"
+services:
+  solr1:
+    image: solr:latest
+    environment:
+      - JVM_OPTS=-Xmx12g -Xms12g -XX:MaxPermSize=1024m
+    ports:
+      - "8983:8983"
+    restart: always
+    container_name: solr1
+    volumes:
+     - /root/solr/mycores:/opt/solr/server/solr/mycores
+    deploy:
+      mode: replicated
+      replicas: 2
+      resources:
+    limits:
+      memory: 1g
+      restart_policy:
+    condition: on-failure
+    links:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper1:2181,zookeeper2:2182,zookeeper2:2183 -m 1g -t /opt/solr/server/solr/mycores''
+  solr2:
+    image: solr:latest
+    ports:
+      - "8984:8984"
+    restart: always
+    container_name: solr2
+    volumes:
+     - /root/solr/cores:/opt/solr/server/solr/mycores
+    deploy:
+      replicas: 2
+      resources:
+    limits:
+      memory: 1g
+      restart_policy:
+    condition: on-failure
+    links:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+      - solr1
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper1:2181,zookeeper2:2182,zookeeper3:2183 -m 1g -t /opt/solr/server/solr/mycores''
+  solr3:
+    image: solr:latest
+    ports:
+      - "8985:8985"
+    restart: always
+    container_name: solr3
+    volumes:
+     - /root/solr/cores:/opt/solr/server/solr/mycores
+    deploy:
+      replicas: 2
+      resources:
+    limits:
+      memory: 1g
+      restart_policy:
+    condition: on-failure
+    links:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+      - solr1
+      - solr2
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper1:2181,zookeeper2:2182,zookeeper3:2183 -m 1g -t /opt/solr/server/solr/mycores''
+  solr4:
+    image: solr:latest
+    ports:
+      - "8986:8986"
+    restart: always
+    container_name: solr4
+    volumes:
+     - /root/solr/cores:/opt/solr/server/solr/mycores
+    deploy:
+      replicas: 2
+      resources:
+    limits:
+      memory: 1g
+      restart_policy:
+    condition: on-failure
+    links:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+      - solr1
+      - solr2
+      - solr3
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper1:2181,zookeeper2:2182,zookeeper3:2183 -m 1g -t /opt/solr/server/solr/mycores''
+  zookeeper1:
+    image: jplock/zookeeper:latest
+    container_name: zookeeper1
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
+    restart: always
+  zookeeper2:
+    image: jplock/zookeeper:latest
+    container_name: zookeeper2
+    ports:
+      - "2182:2182"
+      - "2889:2889"
+      - "3889:3889"
+    restart: always
+  zookeeper3:
+    image: jplock/zookeeper:latest
+    container_name: zookeeper3
+    ports:
+      - "2183:2183"
+      - "2890:2890"
+      - "3890:3890"
+    restart: always
